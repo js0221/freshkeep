@@ -12,6 +12,11 @@
 const GEMINI_API_KEY = "";              // ← 여기에 키를 붙여넣기
 const GEMINI_MODEL = "gemini-2.5-flash";
 
+// 앱 화면에서 입력한 키도 사용 (코드에 안 넣어도 됨, 브라우저에만 저장)
+function getKey() {
+  return GEMINI_API_KEY || localStorage.getItem("fk_gemini_key") || "";
+}
+
 /* ---------- 데이터 저장/불러오기 ---------- */
 function loadData(key, fallback) {
   const raw = localStorage.getItem(key);
@@ -22,6 +27,14 @@ function saveData(key, value) {
 }
 
 let users = loadData("fk_users", {});           // 회원 정보 { 아이디: 비밀번호 }
+
+// 관리자 계정 (미리 등록) — 비밀번호는 원하는 값으로 바꾸세요
+const ADMIN_ID = "admin";
+const ADMIN_PW = "admin0000";
+if (!users[ADMIN_ID]) {
+  users[ADMIN_ID] = ADMIN_PW;
+  saveData("fk_users", users);
+}
 let ingredients = loadData("fk_ingredients", []); // 식재료 목록
 let stats = loadData("fk_stats", { consumed: 0, discarded: 0 }); // 통계
 
@@ -195,6 +208,8 @@ function renderRecipes() {
         <div class="recipe-name">🍳 ${r.name}</div>
         <div class="recipe-match">✅ 지금 바로 만들 수 있어요!</div>
         <div class="recipe-ing">재료: ${ingHtml}</div>
+        <button class="btn-steps" onclick="showSteps('${r.name}', this)">👀 만드는 법 보기</button>
+        <div class="recipe-steps"></div>
       </div>
     `;
   }).join("");
@@ -204,7 +219,7 @@ function renderRecipes() {
 async function callGemini(prompt) {
   const res = await fetch(
     "https://generativelanguage.googleapis.com/v1beta/models/" +
-      GEMINI_MODEL + ":generateContent?key=" + GEMINI_API_KEY,
+      GEMINI_MODEL + ":generateContent?key=" + getKey(),
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -229,8 +244,9 @@ async function getAIRecipes() {
     status.textContent = "먼저 식재료를 등록해주세요.";
     return;
   }
-  if (!GEMINI_API_KEY) {
-    status.textContent = "⚠️ API 키가 없어요. script.js 위쪽 GEMINI_API_KEY에 키를 넣어주세요.";
+  if (!getKey()) {
+    document.getElementById("key-box").classList.remove("hidden");
+    status.textContent = "AI를 쓰려면 아래에 Gemini API 키를 한 번만 입력하세요.";
     return;
   }
 
@@ -265,6 +281,8 @@ async function getAIRecipes() {
           <div class="recipe-name">🍳 ${r.name}</div>
           <div class="recipe-match">✨ AI 추천</div>
           <div class="recipe-ing">재료: ${ingHtml}</div>
+          <button class="btn-steps" onclick="showSteps('${r.name}', this)">👀 만드는 법 보기</button>
+          <div class="recipe-steps"></div>
         </div>`;
     }).join("");
 
@@ -273,6 +291,34 @@ async function getAIRecipes() {
     status.textContent = "오류가 났어요. 인터넷 연결과 API 키를 확인해주세요.";
     renderRecipes(); // 실패하면 기본 레시피라도 다시 보여줌
   }
+}
+
+
+/* ---------- 5-3. 레시피 만드는 법 (AI) ---------- */
+async function showSteps(name, btn) {
+  const stepsDiv = btn.nextElementSibling; // 버튼 바로 아래 .recipe-steps
+
+  if (!getKey()) {
+    stepsDiv.innerHTML = `<p class="steps-msg">AI 키를 먼저 입력하면 만드는 법을 볼 수 있어요.</p>`;
+    return;
+  }
+
+  stepsDiv.innerHTML = `<p class="steps-msg">만드는 법을 불러오는 중이에요... 🤔</p>`;
+  btn.disabled = true;
+
+  const prompt =
+    `"${name}" 만드는 법을 초보자도 따라 할 수 있게 5단계 이내로 알려줘.\n` +
+    `각 단계는 한 문장으로 짧게. 번호(1. 2. 3.)만 붙이고 다른 설명이나 인사말은 절대 쓰지 마.`;
+
+  try {
+    const text = await callGemini(prompt);
+    const lines = text.trim().split("\n").filter(l => l.trim());
+    stepsDiv.innerHTML = lines.map(l => `<div class="step-line">${l.trim()}</div>`).join("");
+  } catch (err) {
+    console.error(err);
+    stepsDiv.innerHTML = `<p class="steps-msg">불러오지 못했어요. 잠시 후 다시 눌러주세요.</p>`;
+  }
+  btn.disabled = false;
 }
 
 
@@ -344,7 +390,7 @@ async function autoFillCategory() {
   if (local) { sel.value = local; return; }
 
   // 모르면 AI에게 분류 요청 (키 있을 때만)
-  if (!GEMINI_API_KEY) return;
+  if (!getKey()) return;
   try {
     const prompt = `"${name}"는 다음 중 어떤 종류야? 채소, 과일, 육류, 수산물, 유제품, 기타 중에서 정확히 한 단어로만 답해.`;
     let answer = await callGemini(prompt);
@@ -445,6 +491,24 @@ function openProfile() {
   document.getElementById("profile-id").textContent = currentUser;
   document.getElementById("profile-pw").value = "";
   document.getElementById("profile-pw2").value = "";
+
+  // 관리자(admin)일 때만 회원 목록 표시
+  const adminSection = document.getElementById("admin-section");
+  if (currentUser === "admin") {
+    const ids = Object.keys(users);
+    document.getElementById("admin-count").textContent = ids.length;
+    document.getElementById("admin-list").innerHTML = ids.length
+      ? ids.map(id => `
+          <div class="modal-item">
+            <span>👤 ${id}</span>
+            <span class="mi-badge" style="color:var(--text-soft)">${id === "admin" ? "관리자" : "회원"}</span>
+          </div>`).join("")
+      : `<p class="steps-msg">가입한 회원이 없어요.</p>`;
+    adminSection.classList.remove("hidden");
+  } else {
+    adminSection.classList.add("hidden");
+  }
+
   document.getElementById("profile-modal").classList.remove("hidden");
 }
 function closeProfile() {
@@ -496,6 +560,7 @@ function signup() {
   const pw2 = document.getElementById("signup-pw2").value;
 
   if (!id || !pw) { alert("아이디와 비밀번호를 입력하세요."); return; }
+  if (id.toLowerCase() === "admin") { alert("사용할 수 없는 아이디입니다."); return; }
   if (users[id]) { alert("이미 존재하는 아이디입니다."); return; }
   if (pw !== pw2) { alert("비밀번호가 일치하지 않습니다."); return; }
 
@@ -506,6 +571,16 @@ function signup() {
   document.getElementById("login-id").value = id;
 }
 
+// 앱 화면으로 들어가기 (로그인 성공 / 자동 로그인 공통)
+function enterApp(id) {
+  currentUser = id;
+  document.getElementById("user-name").textContent = id;
+  document.getElementById("screen-login").classList.remove("active");
+  document.getElementById("screen-signup").classList.remove("active");
+  document.getElementById("app").classList.remove("hidden");
+  render();
+}
+
 function login() {
   const id = document.getElementById("login-id").value.trim();
   const pw = document.getElementById("login-pw").value;
@@ -514,15 +589,14 @@ function login() {
   if (users[id] === undefined) { alert("존재하지 않는 아이디입니다. 회원가입을 해주세요."); return; }
   if (users[id] !== pw) { alert("비밀번호가 틀렸습니다."); return; }
 
-  currentUser = id;
-  document.getElementById("user-name").textContent = id;
-  document.getElementById("screen-login").classList.remove("active");
-  document.getElementById("app").classList.remove("hidden");
-  render();
+  localStorage.setItem("fk_login", id); // 로그인 상태 저장 (새로고침해도 유지)
+  enterApp(id);
   showAlertPopup(); // 로그인 직후 유통기한 알림
 }
 
 function logout() {
+  localStorage.removeItem("fk_login"); // 로그인 상태 해제
+  currentUser = null;
   document.getElementById("app").classList.add("hidden");
   showAuth("screen-login");
   document.getElementById("login-id").value = "";
@@ -560,6 +634,16 @@ document.getElementById("filter-storage").addEventListener("change", renderFullL
 // AI 레시피 추천 버튼
 document.getElementById("btn-ai-recipe").addEventListener("click", getAIRecipes);
 
+// API 키 저장 버튼
+document.getElementById("btn-save-key").addEventListener("click", () => {
+  const k = document.getElementById("key-input").value.trim();
+  if (!k) { alert("키를 입력하세요."); return; }
+  localStorage.setItem("fk_gemini_key", k);
+  document.getElementById("key-box").classList.add("hidden");
+  document.getElementById("key-input").value = "";
+  getAIRecipes(); // 저장 후 바로 추천 실행
+});
+
 // 재료 이름 입력을 끝내면 카테고리 자동 채움
 document.getElementById("add-name").addEventListener("blur", autoFillCategory);
 
@@ -590,3 +674,11 @@ document.getElementById("btn-reset-all").addEventListener("click", resetAll);
 document.getElementById("login-pw").addEventListener("keydown", e => {
   if (e.key === "Enter") login();
 });
+
+// 새로고침(F5)해도 로그인 유지 — 저장된 로그인 상태가 있으면 자동으로 들어감
+(function autoLogin() {
+  const saved = localStorage.getItem("fk_login");
+  if (saved && users[saved] !== undefined) {
+    enterApp(saved);
+  }
+})();
