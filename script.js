@@ -12,9 +12,18 @@
 const GEMINI_API_KEY = "";              // ← 여기에 키를 붙여넣기
 const GEMINI_MODEL = "gemini-2.5-flash";
 
+// Cloudflare Worker 주소 (서버에 키를 숨겨두는 방식)
+// 여기에 Worker 주소를 넣으면, 사용자는 키 없이 AI를 쓸 수 있어요.
+const WORKER_URL = "";                   // 예: "https://freshkeep-ai.이름.workers.dev"
+
 // 앱 화면에서 입력한 키도 사용 (코드에 안 넣어도 됨, 브라우저에만 저장)
 function getKey() {
   return GEMINI_API_KEY || localStorage.getItem("fk_gemini_key") || "";
+}
+
+// AI를 쓸 준비가 됐는지 (Worker 주소가 있거나, 키가 있으면 OK)
+function aiReady() {
+  return !!(WORKER_URL || getKey());
 }
 
 /* ---------- 데이터 저장/불러오기 ---------- */
@@ -28,9 +37,13 @@ function saveData(key, value) {
 
 let users = loadData("fk_users", {});           // 회원 정보 { 아이디: 비밀번호 }
 
-// 관리자 계정 (미리 등록) — 비밀번호는 원하는 값으로 바꾸세요
+// 관리자 계정 (미리 등록)
+// 비밀번호는 base64로 인코딩되어 있어 F12로 봐도 바로 안 보입니다.
+// 비번을 바꾸려면: 브라우저 콘솔(F12)에서  btoa("새비번")  을 실행해
+// 나온 값을 아래 ADMIN_PW_ENC 에 넣으세요. (지금 값은 "admin0000")
 const ADMIN_ID = "admin";
-const ADMIN_PW = "admin0000";
+const ADMIN_PW_ENC = "YWRtaW4wMDAw";        // base64 인코딩된 비밀번호
+const ADMIN_PW = atob(ADMIN_PW_ENC);         // 실행할 때 풀어서 사용
 if (!users[ADMIN_ID]) {
   users[ADMIN_ID] = ADMIN_PW;
   saveData("fk_users", users);
@@ -217,15 +230,19 @@ function renderRecipes() {
 
 /* ---------- Gemini API 호출 (공통 함수) ---------- */
 async function callGemini(prompt) {
-  const res = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/" +
-      GEMINI_MODEL + ":generateContent?key=" + getKey(),
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    }
-  );
+  const body = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] });
+
+  // Worker 주소가 있으면 그쪽으로(키 숨김), 없으면 직접 호출(키 사용)
+  const url = WORKER_URL
+    ? WORKER_URL
+    : "https://generativelanguage.googleapis.com/v1beta/models/" +
+        GEMINI_MODEL + ":generateContent?key=" + getKey();
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body
+  });
   if (!res.ok) throw new Error("API 응답 오류: " + res.status);
   const data = await res.json();
   return (data.candidates &&
@@ -244,7 +261,7 @@ async function getAIRecipes() {
     status.textContent = "먼저 식재료를 등록해주세요.";
     return;
   }
-  if (!getKey()) {
+  if (!aiReady()) {
     document.getElementById("key-box").classList.remove("hidden");
     status.textContent = "AI를 쓰려면 아래에 Gemini API 키를 한 번만 입력하세요.";
     return;
@@ -298,7 +315,7 @@ async function getAIRecipes() {
 async function showSteps(name, btn) {
   const stepsDiv = btn.nextElementSibling; // 버튼 바로 아래 .recipe-steps
 
-  if (!getKey()) {
+  if (!aiReady()) {
     stepsDiv.innerHTML = `<p class="steps-msg">AI 키를 먼저 입력하면 만드는 법을 볼 수 있어요.</p>`;
     return;
   }
@@ -389,8 +406,8 @@ async function autoFillCategory() {
   const local = guessCategory(name);
   if (local) { sel.value = local; return; }
 
-  // 모르면 AI에게 분류 요청 (키 있을 때만)
-  if (!getKey()) return;
+  // 모르면 AI에게 분류 요청 (키 또는 Worker 있을 때만)
+  if (!aiReady()) return;
   try {
     const prompt = `"${name}"는 다음 중 어떤 종류야? 채소, 과일, 육류, 수산물, 유제품, 기타 중에서 정확히 한 단어로만 답해.`;
     let answer = await callGemini(prompt);
