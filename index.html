@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>냉장고 지킴이 - 음식물 쓰레기 감소앱</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===================== 1. 로그인 화면 ===================== -->
+  <section id="screen-login" class="screen screen-auth active">
+    <div class="auth-box">
+      <div class="auth-logo">🥬</div>
+      <h1 class="auth-title">냉장고 지킴이</h1>
+      <p class="auth-sub">버리기 전에, 먼저 챙기세요</p>
+
+      <div class="field">
+        <label for="login-id">아이디</label>
+        <input type="text" id="login-id" placeholder="아이디를 입력하세요" />
+      </div>
+      <div class="field">
+        <label for="login-pw">비밀번호</label>
+        <input type="password" id="login-pw" placeholder="비밀번호를 입력하세요" />
+      </div>
+
+      <button class="btn-primary btn-full" id="btn-login">로그인</button>
+      <p class="auth-switch">계정이 없으신가요?
+        <a href="#" id="go-signup">회원가입</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ===================== 1-2. 회원가입 화면 ===================== -->
+  <section id="screen-signup" class="screen screen-auth">
+    <div class="auth-box">
+      <div class="auth-logo">📝</div>
+      <h1 class="auth-title">회원가입</h1>
+      <p class="auth-sub">간단하게 가입하고 시작하세요</p>
+
+      <div class="field">
+        <label for="signup-id">아이디</label>
+        <input type="text" id="signup-id" placeholder="사용할 아이디" />
+      </div>
+      <div class="field">
+        <label for="signup-pw">비밀번호</label>
+        <input type="password" id="signup-pw" placeholder="비밀번호" />
+      </div>
+      <div class="field">
+        <label for="signup-pw2">비밀번호 확인</label>
+        <input type="password" id="signup-pw2" placeholder="비밀번호 다시 입력" />
+      </div>
+
+      <button class="btn-primary btn-full" id="btn-signup">가입하기</button>
+      <p class="auth-switch">이미 계정이 있으신가요?
+        <a href="#" id="go-login">로그인</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ===================== 앱 본체 (로그인 후) ===================== -->
+  <div id="app" class="app hidden">
+
+    <!-- 상단 헤더 -->
+    <header class="app-header">
+      <span class="app-header-logo">🥬 냉장고 지킴이</span>
+      <div class="header-btns">
+        <button class="btn-logout" id="btn-profile">내정보</button>
+        <button class="btn-logout" id="btn-logout">로그아웃</button>
+      </div>
+    </header>
+
+    <main class="app-body">
+
+      <!-- ===================== 2. 메인 화면 ===================== -->
+      <section id="screen-main" class="screen active">
+        <h2 class="screen-title">안녕하세요, <span id="user-name">사용자</span>님 👋</h2>
+
+        <div class="summary-row">
+          <div class="summary-card">
+            <span class="summary-num" id="sum-total">0</span>
+            <span class="summary-label">보유 식재료</span>
+          </div>
+          <div class="summary-card warning">
+            <span class="summary-num" id="sum-soon">0</span>
+            <span class="summary-label">임박 식재료</span>
+          </div>
+          <div class="summary-card danger">
+            <span class="summary-num" id="sum-expired">0</span>
+            <span class="summary-label">유통기한 지남</span>
+          </div>
+        </div>
+
+        <h3 class="block-title">⏰ 곧 유통기한이 끝나요</h3>
+        <div id="soon-list" class="card-list"></div>
+
+        <h3 class="block-title">🧊 보유 중인 식재료</h3>
+        <div id="main-list" class="card-list"></div>
+      </section>
+
+      <!-- ===================== 3. 식재료 등록 화면 ===================== -->
+      <section id="screen-add" class="screen">
+        <h2 class="screen-title">식재료 등록</h2>
+        <div class="form-card">
+          <div class="field">
+            <label for="add-name">식재료 이름</label>
+            <input type="text" id="add-name" placeholder="예) 우유, 계란, 사과" />
+          </div>
+          <div class="field">
+            <label for="add-category">카테고리</label>
+            <select id="add-category">
+              <option value="채소">채소</option>
+              <option value="과일">과일</option>
+              <option value="육류">육류</option>
+              <option value="수산물">수산물</option>
+              <option value="유제품">유제품</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="add-date">유통기한</label>
+            <input type="date" id="add-date" />
+          </div>
+          <div class="field">
+            <label for="add-storage">보관 위치</label>
+            <select id="add-storage">
+              <option value="냉장">냉장</option>
+              <option value="냉동">냉동</option>
+              <option value="실온">실온</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="add-qty">수량</label>
+            <input type="number" id="add-qty" min="1" value="1" />
+          </div>
+          <button class="btn-primary btn-full" id="btn-add">등록하기</button>
+        </div>
+      </section>
+
+      <!-- ===================== 4. 식재료 목록 화면 ===================== -->
+      <section id="screen-list" class="screen">
+        <h2 class="screen-title">식재료 목록</h2>
+
+        <div class="list-tools">
+          <input type="text" id="search-input" placeholder="🔍 식재료 이름 검색" />
+          <select id="filter-storage">
+            <option value="전체">보관 전체</option>
+            <option value="냉장">냉장</option>
+            <option value="냉동">냉동</option>
+            <option value="실온">실온</option>
+          </select>
+        </div>
+
+        <div class="category-tabs" id="category-tabs">
+          <button class="cat-tab active" data-cat="전체">전체</button>
+          <button class="cat-tab" data-cat="채소">채소</button>
+          <button class="cat-tab" data-cat="과일">과일</button>
+          <button class="cat-tab" data-cat="육류">육류</button>
+          <button class="cat-tab" data-cat="수산물">수산물</button>
+          <button class="cat-tab" data-cat="유제품">유제품</button>
+          <button class="cat-tab" data-cat="기타">기타</button>
+        </div>
+
+        <div id="full-list" class="card-list"></div>
+      </section>
+
+      <!-- ===================== 5. 레시피 추천 화면 ===================== -->
+      <section id="screen-recipe" class="screen">
+        <h2 class="screen-title">레시피 추천</h2>
+        <p class="screen-desc">보유한 식재료로 만들 수 있는 요리를 추천해드려요.</p>
+        <button class="btn-primary btn-full" id="btn-ai-recipe">🤖 AI로 레시피 추천받기</button>
+        <p class="ai-status" id="ai-status"></p>
+        <div id="recipe-list" class="recipe-list"></div>
+      </section>
+
+      <!-- ===================== 6. 통계 화면 ===================== -->
+      <section id="screen-stats" class="screen">
+        <h2 class="screen-title">절약 통계</h2>
+
+        <div class="stat-cards">
+          <div class="stat-card good">
+            <span class="stat-num" id="stat-consumed">0</span>
+            <span class="stat-label">다 먹은 식재료</span>
+          </div>
+          <div class="stat-card bad">
+            <span class="stat-num" id="stat-discarded">0</span>
+            <span class="stat-label">버린 식재료</span>
+          </div>
+        </div>
+
+        <div class="stat-score-box">
+          <span class="stat-score-label">나의 절약 점수</span>
+          <span class="stat-score" id="stat-score">0점</span>
+          <div class="stat-bar"><div class="stat-bar-fill" id="stat-bar-fill"></div></div>
+          <p class="stat-msg" id="stat-msg"></p>
+        </div>
+
+        <div class="danger-zone">
+          <h3 class="block-title">데이터 초기화</h3>
+          <button class="btn-outline" id="btn-reset-stats">통계 기록만 초기화</button>
+          <button class="btn-danger" id="btn-reset-all">식재료 + 통계 전체 삭제</button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- 하단 네비게이션 -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-target="screen-main">
+        <span class="nav-icon">🏠</span><span>홈</span>
+      </button>
+      <button class="nav-btn" data-target="screen-list">
+        <span class="nav-icon">📋</span><span>목록</span>
+      </button>
+      <button class="nav-btn nav-add" data-target="screen-add">
+        <span class="nav-icon">➕</span><span>등록</span>
+      </button>
+      <button class="nav-btn" data-target="screen-recipe">
+        <span class="nav-icon">🍳</span><span>레시피</span>
+      </button>
+      <button class="nav-btn" data-target="screen-stats">
+        <span class="nav-icon">📊</span><span>통계</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- ===================== 내 정보 (마이페이지) 팝업 ===================== -->
+  <div id="profile-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3 class="modal-title">⚙️ 내 정보</h3>
+      <p class="modal-desc">아이디: <strong id="profile-id">-</strong></p>
+
+      <div class="field">
+        <label for="profile-pw">새 비밀번호</label>
+        <input type="password" id="profile-pw" placeholder="바꿀 비밀번호 입력" />
+      </div>
+      <div class="field">
+        <label for="profile-pw2">새 비밀번호 확인</label>
+        <input type="password" id="profile-pw2" placeholder="비밀번호 다시 입력" />
+      </div>
+      <button class="btn-primary btn-full" id="btn-profile-save">저장하기</button>
+
+      <hr class="modal-divider" />
+
+      <button class="btn-danger btn-full" id="btn-delete-account">회원 탈퇴</button>
+      <button class="btn-outline btn-full" id="btn-profile-close" style="margin-top:10px;">닫기</button>
+    </div>
+  </div>
+
+  <!-- ===================== 유통기한 알림 팝업 ===================== -->
+  <div id="alert-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3 class="modal-title">⏰ 유통기한 알림</h3>
+      <p class="modal-desc">아래 식재료를 빨리 확인하세요!</p>
+      <div id="alert-list" class="modal-list"></div>
+      <button class="btn-primary btn-full" id="btn-alert-close">확인</button>
+    </div>
+  </div>
+
+  <!-- ===================== 식재료 수정 팝업 ===================== -->
+  <div id="edit-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3 class="modal-title">✏️ 식재료 수정</h3>
+      <input type="hidden" id="edit-id" />
+      <div class="field">
+        <label for="edit-name">이름</label>
+        <input type="text" id="edit-name" />
+      </div>
+      <div class="field">
+        <label for="edit-date">유통기한</label>
+        <input type="date" id="edit-date" />
+      </div>
+      <div class="field">
+        <label for="edit-qty">수량</label>
+        <input type="number" id="edit-qty" min="1" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-outline" id="btn-edit-cancel">취소</button>
+        <button class="btn-primary" id="btn-edit-save">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

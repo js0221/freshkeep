@@ -1,0 +1,400 @@
+/* ===================== 기본 설정 ===================== */
+:root {
+  --bg: #f5f3ec;
+  --surface: #ffffff;
+  --primary: #2f6b3e;
+  --primary-light: #4caf6d;
+  --warning: #e8a317;
+  --danger: #d65745;
+  --text: #26291f;
+  --text-soft: #6d7064;
+  --line: #e3e0d6;
+  --radius: 16px;
+  --shadow: 0 4px 16px rgba(40, 50, 30, 0.08);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Noto Sans KR", -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.hidden { display: none !important; }
+
+/* ===================== 공통 버튼 / 입력 ===================== */
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.08s;
+  font-family: inherit;
+}
+.btn-primary:hover { background: var(--primary-light); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-full { width: 100%; }
+
+.btn-outline {
+  background: #fff;
+  color: var(--text-soft);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 13px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-outline:hover { border-color: var(--primary-light); color: var(--primary); }
+
+.btn-danger {
+  background: #fbe5e1;
+  color: var(--danger);
+  border: none;
+  border-radius: 12px;
+  padding: 13px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-danger:hover { background: var(--danger); color: #fff; }
+
+.field { margin-bottom: 16px; text-align: left; }
+.field label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text-soft);
+}
+.field input,
+.field select,
+.list-tools input,
+.list-tools select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--text);
+}
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--primary-light);
+}
+
+/* ===================== 로그인 / 회원가입 화면 ===================== */
+.screen-auth {
+  display: none;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(160deg, #e9f3ea 0%, #f5f3ec 60%);
+}
+.screen-auth.active { display: flex; }
+
+.auth-box {
+  background: var(--surface);
+  width: 100%;
+  max-width: 380px;
+  padding: 40px 32px;
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.auth-logo { font-size: 56px; }
+.auth-title { font-size: 26px; font-weight: 900; margin-top: 8px; color: var(--primary); }
+.auth-sub { color: var(--text-soft); margin-bottom: 28px; font-size: 14px; }
+.auth-switch { margin-top: 16px; font-size: 13px; color: var(--text-soft); }
+.auth-switch a { color: var(--primary); font-weight: 700; text-decoration: none; }
+.auth-switch a:hover { text-decoration: underline; }
+
+/* ===================== 앱 레이아웃 ===================== */
+.app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--bg); padding-bottom: 80px; }
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--primary);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.app-header-logo { font-weight: 700; font-size: 17px; }
+.header-btns { display: flex; gap: 8px; }
+.btn-logout {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.modal-divider { border: none; border-top: 1px solid var(--line); margin: 18px 0; }
+
+.app-body { padding: 20px 16px; }
+
+/* 화면 전환 */
+.screen { display: none; }
+.screen.active { display: block; }
+
+.screen-title { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+.screen-desc { color: var(--text-soft); font-size: 14px; margin-bottom: 16px; }
+.block-title { font-size: 15px; font-weight: 700; margin: 24px 0 12px; }
+
+/* ===================== 2. 메인 - 요약 카드 ===================== */
+.summary-row { display: flex; gap: 10px; }
+.summary-card {
+  flex: 1;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 18px 10px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  border-top: 3px solid var(--primary);
+}
+.summary-card.warning { border-top-color: var(--warning); }
+.summary-card.danger { border-top-color: var(--danger); }
+.summary-num { display: block; font-size: 28px; font-weight: 900; }
+.summary-label { font-size: 12px; color: var(--text-soft); }
+
+/* ===================== 식재료 카드 ===================== */
+.card-list { display: flex; flex-direction: column; gap: 10px; }
+
+.food-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-left: 5px solid var(--primary-light);
+}
+.food-card.soon { border-left-color: var(--warning); }
+.food-card.expired { border-left-color: var(--danger); }
+
+.food-icon { font-size: 26px; }
+.food-info { flex: 1; min-width: 0; }
+.food-name { font-weight: 700; font-size: 16px; }
+.food-meta { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+.food-cat {
+  display: inline-block;
+  font-size: 11px;
+  background: #eef1ea;
+  color: var(--text-soft);
+  padding: 1px 7px;
+  border-radius: 6px;
+  margin-right: 5px;
+}
+
+.food-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.badge-fresh { background: #e6f3ea; color: var(--primary); }
+.badge-soon { background: #fdf1da; color: #b9810a; }
+.badge-expired { background: #fbe5e1; color: var(--danger); }
+
+.food-actions { display: flex; gap: 5px; }
+.icon-btn {
+  border: none;
+  background: #f0efe8;
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.icon-btn.edit:hover { background: #eaf0fb; }
+.icon-btn.eat:hover { background: #e6f3ea; }
+.icon-btn.trash:hover { background: #fbe5e1; }
+
+.empty-msg {
+  text-align: center;
+  color: var(--text-soft);
+  font-size: 14px;
+  padding: 24px 0;
+}
+
+/* ===================== 3. 등록 폼 ===================== */
+.form-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 22px 18px;
+  box-shadow: var(--shadow);
+}
+
+/* ===================== 4. 목록 검색 / 카테고리 ===================== */
+.list-tools { display: flex; gap: 8px; margin-bottom: 12px; }
+.list-tools input { flex: 2; }
+.list-tools select { flex: 1; }
+
+.category-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+}
+.cat-tab {
+  border: 1.5px solid var(--line);
+  background: #fff;
+  color: var(--text-soft);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-family: inherit;
+}
+.cat-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 700; }
+
+/* ===================== 5. 레시피 ===================== */
+#btn-ai-recipe { margin-bottom: 10px; }
+.ai-status { font-size: 13px; color: var(--text-soft); margin-bottom: 12px; min-height: 18px; }
+.recipe-list { display: flex; flex-direction: column; gap: 12px; }
+.recipe-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+.recipe-name { font-weight: 700; font-size: 16px; margin-bottom: 6px; }
+.recipe-match { font-size: 13px; color: var(--primary); font-weight: 500; margin-bottom: 8px; }
+.recipe-ing { font-size: 13px; color: var(--text-soft); }
+.recipe-have { color: var(--primary); font-weight: 700; }
+
+/* ===================== 6. 통계 ===================== */
+.stat-cards { display: flex; gap: 12px; margin-bottom: 20px; }
+.stat-card {
+  flex: 1;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 22px 12px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.stat-num { display: block; font-size: 34px; font-weight: 900; }
+.stat-card.good .stat-num { color: var(--primary); }
+.stat-card.bad .stat-num { color: var(--danger); }
+.stat-label { font-size: 13px; color: var(--text-soft); }
+
+.stat-score-box {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 22px 18px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.stat-score-label { font-size: 14px; color: var(--text-soft); }
+.stat-score { display: block; font-size: 38px; font-weight: 900; color: var(--primary); margin: 6px 0 14px; }
+.stat-bar { height: 14px; background: #ecebe3; border-radius: 10px; overflow: hidden; }
+.stat-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary-light), var(--primary)); transition: width 0.5s; }
+.stat-msg { margin-top: 12px; font-size: 14px; color: var(--text-soft); }
+
+.danger-zone { margin-top: 28px; display: flex; flex-direction: column; gap: 10px; }
+.danger-zone .btn-outline, .danger-zone .btn-danger { width: 100%; }
+
+/* ===================== 하단 네비게이션 ===================== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--surface);
+  display: flex;
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.05);
+}
+.nav-btn {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 10px 0 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  color: var(--text-soft);
+  cursor: pointer;
+  font-family: inherit;
+}
+.nav-btn.active { color: var(--primary); font-weight: 700; }
+.nav-icon { font-size: 20px; }
+.nav-add .nav-icon {
+  background: var(--primary);
+  color: #fff;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: -22px;
+  box-shadow: var(--shadow);
+}
+.nav-add.active .nav-icon { background: var(--primary-light); }
+
+/* ===================== 팝업(모달) ===================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 25, 18, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+}
+.modal-box {
+  background: #fff;
+  width: 100%;
+  max-width: 360px;
+  border-radius: 20px;
+  padding: 26px 22px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+}
+.modal-title { font-size: 19px; font-weight: 700; margin-bottom: 4px; }
+.modal-desc { font-size: 14px; color: var(--text-soft); margin-bottom: 16px; }
+.modal-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; max-height: 240px; overflow-y: auto; }
+.modal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #faf8f2;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+.modal-item .mi-badge { font-weight: 700; font-size: 12px; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions .btn-outline,
+.modal-actions .btn-primary { flex: 1; }
+
+/* 접근성 */
+button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
