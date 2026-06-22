@@ -173,6 +173,10 @@
         <p class="screen-desc">보유한 식재료로 만들 수 있는 요리를 추천해드려요.</p>
         <button class="btn-primary btn-full" id="btn-ai-recipe">🤖 AI로 레시피 추천받기</button>
         <p class="ai-status" id="ai-status"></p>
+        <div id="key-box" class="key-box hidden">
+          <input type="password" id="key-input" placeholder="Gemini API 키 붙여넣기 (AIza...)" />
+          <button class="btn-primary" id="btn-save-key">키 저장</button>
+        </div>
         <div id="recipe-list" class="recipe-list"></div>
       </section>
 
@@ -243,6 +247,13 @@
         <input type="password" id="profile-pw2" placeholder="비밀번호 다시 입력" />
       </div>
       <button class="btn-primary btn-full" id="btn-profile-save">저장하기</button>
+
+      <div id="admin-section" class="admin-section hidden">
+        <hr class="modal-divider" />
+        <h3 class="modal-title" style="font-size:16px;">👑 회원 목록 (관리자)</h3>
+        <p class="modal-desc">가입한 회원: <strong id="admin-count">0</strong>명</p>
+        <div id="admin-list" class="modal-list"></div>
+      </div>
 
       <hr class="modal-divider" />
 
