@@ -48,8 +48,12 @@ if (!users[ADMIN_ID]) {
   users[ADMIN_ID] = ADMIN_PW;
   saveData("fk_users", users);
 }
-let ingredients = loadData("fk_ingredients", []); // 식재료 목록
+let ingredients = [];                              // 현재 보고 있는 냉장고의 식재료
+let viewingUser = null;                            // 지금 냉장고를 보고 있는 회원(보통 본인, 관리자는 변경 가능)
 let stats = loadData("fk_stats", { consumed: 0, discarded: 0 }); // 통계
+
+// 회원별 식재료 저장 키 (회원마다 냉장고를 따로 저장)
+function ingKey(u) { return "fk_ingredients_" + u; }
 
 let currentCategory = "전체"; // 목록 화면에서 선택된 카테고리
 let currentUser = null;       // 현재 로그인한 아이디
@@ -369,7 +373,7 @@ function addIngredient() {
   if (!date) { alert("유통기한을 선택하세요."); return; }
 
   ingredients.push({ id: Date.now(), name, category, expireDate: date, storage, quantity: qty });
-  saveData("fk_ingredients", ingredients);
+  saveData(ingKey(viewingUser), ingredients);
 
   document.getElementById("add-name").value = "";
   document.getElementById("add-date").value = "";
@@ -436,7 +440,7 @@ function saveEdit() {
   item.name = document.getElementById("edit-name").value.trim() || item.name;
   item.expireDate = document.getElementById("edit-date").value || item.expireDate;
   item.quantity = parseInt(document.getElementById("edit-qty").value) || 1;
-  saveData("fk_ingredients", ingredients);
+  saveData(ingKey(viewingUser), ingredients);
   closeEdit();
   render();
 }
@@ -448,7 +452,7 @@ function closeEdit() {
 function consumeItem(id) {
   ingredients = ingredients.filter(i => i.id !== id);
   stats.consumed++;
-  saveData("fk_ingredients", ingredients);
+  saveData(ingKey(viewingUser), ingredients);
   saveData("fk_stats", stats);
   render();
 }
@@ -456,7 +460,7 @@ function discardItem(id) {
   if (!confirm("이 식재료를 버린 것으로 기록할까요?")) return;
   ingredients = ingredients.filter(i => i.id !== id);
   stats.discarded++;
-  saveData("fk_ingredients", ingredients);
+  saveData(ingKey(viewingUser), ingredients);
   saveData("fk_stats", stats);
   render();
 }
@@ -473,7 +477,7 @@ function resetAll() {
   if (!confirm("식재료와 통계를 모두 삭제할까요? 되돌릴 수 없습니다.")) return;
   ingredients = [];
   stats = { consumed: 0, discarded: 0 };
-  saveData("fk_ingredients", ingredients);
+  saveData(ingKey(viewingUser), ingredients);
   saveData("fk_stats", stats);
   render();
   switchScreen("screen-main");
@@ -516,9 +520,9 @@ function openProfile() {
     document.getElementById("admin-count").textContent = ids.length;
     document.getElementById("admin-list").innerHTML = ids.length
       ? ids.map(id => `
-          <div class="modal-item">
+          <div class="modal-item member-item" onclick="viewMemberFridge('${id}')">
             <span>👤 ${id}</span>
-            <span class="mi-badge" style="color:var(--text-soft)">${id === "admin" ? "관리자" : "회원"}</span>
+            <span class="mi-badge" style="color:var(--primary)">${id === "admin" ? "관리자" : "냉장고 보기 ›"}</span>
           </div>`).join("")
       : `<p class="steps-msg">가입한 회원이 없어요.</p>`;
     adminSection.classList.remove("hidden");
@@ -530,6 +534,32 @@ function openProfile() {
 }
 function closeProfile() {
   document.getElementById("profile-modal").classList.add("hidden");
+}
+
+/* ---------- 관리자: 회원 냉장고 보기 ---------- */
+function viewMemberFridge(id) {
+  viewingUser = id;
+  ingredients = loadData(ingKey(id), []); // 그 회원의 냉장고 불러오기
+  closeProfile();
+  switchScreen("screen-main");
+  render();
+
+  // 안내 배너 표시 (본인이 아닐 때만)
+  const banner = document.getElementById("view-banner");
+  if (id !== currentUser) {
+    document.getElementById("view-banner-text").textContent = `👀 '${id}'님의 냉장고를 보는 중`;
+    banner.classList.remove("hidden");
+  } else {
+    banner.classList.add("hidden");
+  }
+}
+
+function backToMyFridge() {
+  viewingUser = currentUser;
+  ingredients = loadData(ingKey(currentUser), []);
+  document.getElementById("view-banner").classList.add("hidden");
+  switchScreen("screen-main");
+  render();
 }
 function saveProfile() {
   const pw = document.getElementById("profile-pw").value;
@@ -552,7 +582,7 @@ function deleteAccount() {
   // 데이터도 함께 삭제
   ingredients = [];
   stats = { consumed: 0, discarded: 0 };
-  saveData("fk_ingredients", ingredients);
+  saveData(ingKey(viewingUser), ingredients);
   saveData("fk_stats", stats);
 
   currentUser = null;
@@ -591,10 +621,21 @@ function signup() {
 // 앱 화면으로 들어가기 (로그인 성공 / 자동 로그인 공통)
 function enterApp(id) {
   currentUser = id;
+  viewingUser = id; // 기본은 본인 냉장고
+
+  // 예전(공유) 식재료 데이터가 있으면, 처음 로그인한 회원에게 한 번 옮겨줌
+  const oldShared = localStorage.getItem("fk_ingredients");
+  if (oldShared) {
+    if (!localStorage.getItem(ingKey(id))) localStorage.setItem(ingKey(id), oldShared);
+    localStorage.removeItem("fk_ingredients");
+  }
+
+  ingredients = loadData(ingKey(id), []); // 내 냉장고 불러오기
   document.getElementById("user-name").textContent = id;
   document.getElementById("screen-login").classList.remove("active");
   document.getElementById("screen-signup").classList.remove("active");
   document.getElementById("app").classList.remove("hidden");
+  document.getElementById("view-banner").classList.add("hidden");
   render();
 }
 
@@ -691,6 +732,9 @@ document.getElementById("btn-reset-all").addEventListener("click", resetAll);
 document.getElementById("login-pw").addEventListener("keydown", e => {
   if (e.key === "Enter") login();
 });
+
+// 관리자: 내 냉장고로 돌아가기
+document.getElementById("btn-back-fridge").addEventListener("click", backToMyFridge);
 
 // 새로고침(F5)해도 로그인 유지 — 저장된 로그인 상태가 있으면 자동으로 들어감
 (function autoLogin() {
