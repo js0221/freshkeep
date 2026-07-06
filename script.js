@@ -9,7 +9,7 @@
    예: const GEMINI_API_KEY = "AIzaSyx...";
    키가 없으면 AI 버튼은 안내 메시지만 뜨고, 기본 레시피는 그대로 작동합니다.
 ======================================================= */
-const GEMINI_API_KEY = "";              // ← 여기에 키를 붙여넣기
+const GEMINI_API_KEY = "AQ.Ab8RN6IF4vcbr25yiqaTy1iU6bO1vYL-_F4W_XzQ_zzclgpSIQ";              // ← 여기에 키를 붙여넣기
 const GEMINI_MODEL = "gemini-2.5-flash";
 
 // Cloudflare Worker 주소 (서버에 키를 숨겨두는 방식)
